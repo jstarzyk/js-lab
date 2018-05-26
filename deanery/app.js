@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const mongo = require('mongodb');
 const mongoose = require('mongoose');
 const passport = require('passport');
 
@@ -99,4 +98,3 @@ passport.deserializeUser(function(id, done) {
 // passport.
 
 module.exports = app;
-
