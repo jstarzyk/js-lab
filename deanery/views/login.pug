@@ -1,0 +1,9 @@
+doctype html
+html
+    head
+        title #{title}
+    body
+        form#formLogin(name="login",method="post",action="/login")
+            input#inputUsername(type="text", placeholder="username", name="username")
+            input#inputPassword(type="password", name="password")
+            button#btnSubmit(type="submit") Log In
