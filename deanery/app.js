@@ -1,4 +1,3 @@
-acfa21beadfeb338412c2161313dd898a03bc33b blob 3191
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
@@ -117,5 +116,3 @@ router.get('/logout', (req, res) => {
 });
 
 module.exports = router;
-
-ac0abc44f3a3315398e2dd7a3bb2e2b48aab670b blob 1372
