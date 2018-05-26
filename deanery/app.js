@@ -1,118 +1,102 @@
+const createError = require('http-errors');
 const express = require('express');
-const router = express.Router();
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const mongo = require('mongodb');
+const mongoose = require('mongoose');
 const passport = require('passport');
 
-const schemas = require('../schemas/schema');
-const User = schemas.User;
-const Subject = schemas.Subject;
-const Assignment = schemas.Assignment;
-const Student = schemas.Student;
-const Teacher = schemas.Teacher;
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-    let user1 = new User({ username: "js", password: "ala", role: "student" });
-    user1.save((err) => {
-        if (err) res.send('err');
-        let student1 = new Student({
-            user: user1._id,
-            firstName: "Jakub",
-            lastName: "Starzyk",
-        });
-        student1.save((err) => {
-            if (err) res.send('err');
-        });
-    });
-
-
-    res.render('index', { title: 'Express' });
-});
-
-router.get('/subjectlist', function(req, res) {
-    // const db = req.db;
-    // const collection = db.get('subjects');
-    // const collection = db.collection('subjects');
-    // collection.find({},{},function(e,docs){
-    Subject.find({},function(e,docs){
-        res.render('subjectlist', {
-            "subjectlist" : docs
-        });
-    });
-});
-
-// /* GET New User page. */
-// router.get('/newsubject', function(req, res) {
-//     res.render('newsubject', { title: 'Add New Subject' });
-// });
-
-router.get('/student', (req, res) => {
-    // console.log(`logged user: ${req.user}`);
-    // console.log(`logged user role: ${req.user.role}`);
-    // res.redirect('/');
-
-    Student.
-    findOne({user: req.user.id}).
-    populate('user').exec((err, student) => {
-       if (err) res.send('error123');
-       console.log(student);
-    });
-    res.redirect('/logout');
-
-});
-
-// /* POST to Add User Service */
-// router.post('/addsubject', function(req, res) {
-//
-//     // Set our internal DB variable
-//     const db = req.db;
-//
-//     // Get our form values. These rely on the "name" attributes
-//     const name = req.body.name;
-//     const assignments = req.body.assignments;
-//
-//     // Set our collection
-//     const collection = db.collection('subjects');
-//     // const collection = db.get('subjects');
-//
-//     // Submit to the DB
-//     collection.insert({
-//         "name" : name,
-//         "assignments" : [assignments]
-//     }, function (err, doc) {
-//         if (err) {
-//             // If it failed, return error
-//             res.send("There was a problem adding the information to the database.");
-//         }
-//         else {
-//             // And forward to success page
-//             res.redirect("subjectlist");
-//         }
-//     });
-// });
-
-router.get('/login', function(req, res) {
-    res.render('login', { title: 'Login' });
-});
-
-router.post('/login',
-    passport.authenticate('local',
-        {
-            // successRedirect: '/student',
-            failureRedirect: '/login',
-            session: true
-        }),
-    (req, res) => {
-        if (req.user.role === 'student') {
-            res.redirect('/student');
-        } else if (req.user.role === 'teacher') {
-            res.redirect('/teacher');
-        }
+mongoose.connect('mongodb://localhost:27017/deanery', function(err) {
+    if (err) {
+        console.err(err);
+    } else {
+        console.log('Connected');
     }
-);
+});
+let db = mongoose.connection;
+// let uri = 'mongodb://localhost:27017/deanery';
+// global.db = mongoose.createConnection(uri);
 
-router.get('/logout', (req, res) => {
-    req.logout();
-    res.redirect('/');
+
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+
+const app = express();
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(require('express-session')({ secret: 'catcat', resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(function(req,res,next){
+    req.db = db;
+    next();
 });
 
-module.exports = router;
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+
+const LocalStrategy = require('passport-local').Strategy;
+const User = require('./schemas/schema').User;
+
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+        User.findOne({ username: username }, function(err, user) {
+            if (err) { return done(err); }
+            if (!user) {
+                console.log("incorrect username");
+                return done(null, false, { message: 'Incorrect username.' });
+            }
+            // if (!user.validPassword(password)) {
+            if (user.password !== password) {
+                console.log("incorrect password");
+                // console.log(`pwd = ${user.password}`);
+                // console.log(`entered = ${password}`);
+                return done(null, false, { message: 'Incorrect password.' });
+            }
+            return done(null, user);
+        });
+    }
+));
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
+        done(err, user);
+    });
+});
+
+// passport.
+
+module.exports = app;
+
