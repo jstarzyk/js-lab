@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 
 mongoose.connect('mongodb://localhost:27017/deanery')
     .then(db => console.log('connected'))
-    .catch(err => console.error(err.message));
+    .catch(err => console.error(err));
 
 seed();
 

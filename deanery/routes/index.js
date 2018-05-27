@@ -11,28 +11,26 @@ const Teacher = schemas.Teacher;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    let user1 = new User({ username: "js", password: "ala", role: "student" });
-    user1.save((err) => {
-        if (err) res.send('err');
-        let student1 = new Student({
-            user: user1._id,
-            firstName: "Jakub",
-            lastName: "Starzyk",
-        });
-        student1.save((err) => {
-            if (err) res.send('err');
-        });
-    });
+    // let user1 = new User({ username: "js", password: "ala", role: "student" });
+    // user1.save((err) => {
+    //     if (err) res.send('err');
+    //     let student1 = new Student({
+    //         user: user1._id,
+    //         firstName: "Jakub",
+    //         lastName: "Starzyk",
+    //     });
+    //     student1.save((err) => {
+    //         if (err) res.send('err');
+    //     });
+    // });
+    //
+    //
+    // res.render('index', { title: 'Express' });
 
-
-    res.render('index', { title: 'Express' });
+    res.redirect('/login');
 });
 
 router.get('/subjectlist', function(req, res) {
-    // const db = req.db;
-    // const collection = db.get('subjects');
-    // const collection = db.collection('subjects');
-    // collection.find({},{},function(e,docs){
     Subject.find({},function(e,docs){
         res.render('subjectlist', {
             "subjectlist" : docs
@@ -40,23 +38,46 @@ router.get('/subjectlist', function(req, res) {
     });
 });
 
-// /* GET New User page. */
-// router.get('/newsubject', function(req, res) {
-//     res.render('newsubject', { title: 'Add New Subject' });
-// });
-
 router.get('/student', (req, res) => {
-    // console.log(`logged user: ${req.user}`);
-    // console.log(`logged user role: ${req.user.role}`);
-    // res.redirect('/');
+    Student
+        .findOne({user: req.user.id})
+        .populate('marks.subject')
+        .populate('marks.assignment')
+        .then(student => {
+            let marks = student.marks;
+            marks.sort((a, b) => {
+                if (a.subject.name === b.subject.name) {
+                    if (a.assignment.name < b.assignment.name) return -1;
+                    else if (a.assignment.name > b.assignment.name) return 1;
+                    return 0;
+                } else {
+                    return a.subject.name < b.subject.name ? -1 : 1;
+                }
+            });
 
-    Student.
-    findOne({user: req.user.id}).
-    populate('user').exec((err, student) => {
-       if (err) res.send('error123');
-       console.log(student);
-    });
-    res.redirect('/logout');
+            let marksBySubject = {};
+            marks.forEach(mark => {
+                let key = mark.subject.name;
+                let m = { assignment: mark.assignment.name, value: mark.value };
+
+                if (marksBySubject[key] !== undefined) {
+                    let mbs = marksBySubject[key];
+                    mbs.push(m);
+                    marksBySubject[key] = mbs;
+                } else {
+                    marksBySubject[key] = [m];
+                }
+            });
+
+            res.render('student', {
+                name: `${student.firstName} ${student.lastName}`,
+                marks: marksBySubject,
+            });
+        });
+    // res.redirect('/logout');
+});
+
+router.get('/teacher', (req, res) => {
 
 });
 

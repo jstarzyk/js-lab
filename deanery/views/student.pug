@@ -1,0 +1,15 @@
+doctype html
+html
+    head
+        title Title
+    body
+        h1 #{name}
+        h2 Subjects
+        each markList, subject in marks
+            div
+                h3 #{subject}
+                table
+                    tr: each markObject, i in markList
+                        th #{markObject.assignment}
+                    tr: each markObject, i in markList
+                        td #{markObject.value}

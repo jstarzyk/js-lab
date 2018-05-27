@@ -7,17 +7,11 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 
-mongoose.connect('mongodb://localhost:27017/deanery', function(err) {
-    if (err) {
-        console.err(err);
-    } else {
-        console.log('Connected');
-    }
-});
-let db = mongoose.connection;
-// let uri = 'mongodb://localhost:27017/deanery';
-// global.db = mongoose.createConnection(uri);
+mongoose.connect('mongodb://localhost:27017/deanery')
+    .then(db => console.log('connected'))
+    .catch(err => console.error(err));
 
+let db = mongoose.connection;
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
