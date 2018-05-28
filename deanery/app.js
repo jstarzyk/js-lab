@@ -5,6 +5,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const methodOverride = require('method-override');
+const bodyParser = require('body-parser');
 
 
 mongoose.connect('mongodb://localhost:27017/deanery')
@@ -18,18 +20,21 @@ const usersRouter = require('./routes/users');
 
 const app = express();
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+const secret = 'catcat';
+
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(require('express-session')({ secret: 'catcat', resave: false, saveUninitialized: false }));
+app.use(require('express-session')({ secret: secret, resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(methodOverride('_method'));
 
 app.use(function(req,res,next){
     req.db = db;
@@ -88,7 +93,5 @@ passport.deserializeUser(function(id, done) {
         done(err, user);
     });
 });
-
-// passport.
 
 module.exports = app;

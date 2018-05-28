@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
+// const back = require('express-back');
 
 const schemas = require('../schemas/schema');
 const User = schemas.User;
@@ -9,24 +10,9 @@ const Assignment = schemas.Assignment;
 const Student = schemas.Student;
 const Teacher = schemas.Teacher;
 
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    // let user1 = new User({ username: "js", password: "ala", role: "student" });
-    // user1.save((err) => {
-    //     if (err) res.send('err');
-    //     let student1 = new Student({
-    //         user: user1._id,
-    //         firstName: "Jakub",
-    //         lastName: "Starzyk",
-    //     });
-    //     student1.save((err) => {
-    //         if (err) res.send('err');
-    //     });
-    // });
-    //
-    //
-    // res.render('index', { title: 'Express' });
-
     res.redirect('/login');
 });
 
@@ -40,7 +26,7 @@ router.get('/subjectlist', function(req, res) {
 
 router.get('/student', (req, res) => {
     Student
-        .findOne({user: req.user.id})
+        .findOne({ user: req.user.id })
         .populate('marks.subject')
         .populate('marks.assignment')
         .then(student => {
@@ -78,38 +64,122 @@ router.get('/student', (req, res) => {
 });
 
 router.get('/teacher', (req, res) => {
+    let name;
 
+    Teacher
+        .findOne({ user: req.user.id })
+        .populate('subjects')
+        .then(teacher => {
+            let subjectPromises = [];
+            teacher.subjects.forEach(subject => {
+                subjectPromises.push(Subject.findById(subject._id)
+                    .populate('assignments')
+                    .populate({
+                        path: 'students',
+                        populate: {
+                            path: 'marks.subject'
+                        }
+                    })
+                    .populate({
+                        path: 'students',
+                        populate: {
+                            path: 'marks.assignment'
+                        }
+                    })
+                );
+            });
+
+            name = `${teacher.firstName} ${teacher.lastName}`;
+            return Promise.all(subjectPromises);
+        })
+        .then(subjects => {
+            let subjectPromises = [];
+            let mSubjects = [];
+
+            subjects.forEach(subject => {
+                let studentPromises = [];
+                let mSubject = subject;
+                let mStudents = [];
+
+                subject.students.forEach(student => {
+                    studentPromises.push(Student.findById(student._id)
+                        .populate('marks.subject')
+                        .populate('marks.assignment')
+                        .then(student => {
+                            let mStudent = student;
+
+                            let newMarks = student.marks
+                                // TODO: Check why filter doesn't work when comparing by _id
+                                .filter(mark => mark.subject.name === subject.name);
+                            newMarks.sort((a, b) => {
+                                if (a.assignment.name < b.assignment.name) return -1;
+                                else if (a.assignment.name > b.assignment.name) return 1;
+                                return 0;
+                            });
+                            // TODO: Maybe add empty mark when no mark for an assignment
+                            mStudent.marks = newMarks;
+                            mStudents.push(mStudent);
+
+                        }));
+                });
+
+                subjectPromises.push(Promise.all(studentPromises).then(() => {
+                    mSubject.students = mStudents;
+                    mSubjects.push(mSubject);
+                }));
+            });
+
+            Promise.all(subjectPromises).then(() => {
+                res.render('teacher', {
+                    name: name,
+                    subjects: mSubjects,
+                });
+            })
+
+        });
 });
 
-// /* POST to Add User Service */
-// router.post('/addsubject', function(req, res) {
-//
-//     // Set our internal DB variable
-//     const db = req.db;
-//
-//     // Get our form values. These rely on the "name" attributes
-//     const name = req.body.name;
-//     const assignments = req.body.assignments;
-//
-//     // Set our collection
-//     const collection = db.collection('subjects');
-//     // const collection = db.get('subjects');
-//
-//     // Submit to the DB
-//     collection.insert({
-//         "name" : name,
-//         "assignments" : [assignments]
-//     }, function (err, doc) {
-//         if (err) {
-//             // If it failed, return error
-//             res.send("There was a problem adding the information to the database.");
-//         }
-//         else {
-//             // And forward to success page
-//             res.redirect("subjectlist");
-//         }
-//     });
-// });
+router.delete('/delete_mark/:student_id/:mark_id', (req, res) => {
+    if (req.user.role === 'student') {
+        res.redirect('/student');
+    }
+
+    Student.update(
+        { '_id': req.params.student_id },
+        { '$pull': { 'marks': { '_id': req.params.mark_id } } },
+        err => {
+            if (err) console.error(err);
+        }
+    );
+
+    res.redirect('/teacher');
+});
+
+router.put('/update_mark/:student_id/:mark_id', (req, res) => {
+    if (req.user.role === 'student') {
+        res.redirect('/student');
+    }
+
+    let newValue = Number(req.body['upd']);
+    if (newValue === 2.5) {
+        console.log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
+    } else {
+        Student.update({
+                '_id': req.params.student_id,
+                'marks._id': req.params.mark_id
+            },
+            { '$set': {
+                    'marks.$.value': newValue
+                }},
+            err => {
+                if (err) console.error(err);
+            }
+        );
+    }
+    // console.log(req.body[`u${req.params.mark_id}`]);
+
+    res.redirect('/teacher');
+});
 
 router.get('/login', function(req, res) {
     res.render('login', { title: 'Login' });
@@ -118,7 +188,6 @@ router.get('/login', function(req, res) {
 router.post('/login',
     passport.authenticate('local',
         {
-            // successRedirect: '/student',
             failureRedirect: '/login',
             session: true
         }),
