@@ -1,15 +1,13 @@
-doctype html
-html
-    head
-        title Deanery: Student #{name}
-    body
-        h1 #{name}
-        h2 Subjects
-        each swm in subjectWithMarksList
-            div
-                h3 #{swm.subject.name}
-                table
-                    tr: each mark in swm.marks
-                        th #{mark.assignment.name}
-                    tr: each mark in swm.marks
-                        td #{mark.value}
+extends loggedInPage.pug
+
+block content
+  h1 #{name}
+  h2 Subjects
+  each swm in subjectWithMarksList
+    div
+      h3 #{swm.subject.name}
+      table
+        tr: each mark in swm.marks
+          th #{mark.assignment.name}
+        tr: each mark in swm.marks
+          td #{mark.value}

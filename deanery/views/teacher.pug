@@ -1,32 +1,33 @@
-doctype html
-html
-    head
-        title Deanery: Teacher #{name}
-    body
-        h1 #{name}
-        h2 Subjects
-        each subject in subjects
-            div
-                h3 #{subject.name}
-                table
-                    tr
-                        th
-                        each assignment in subject.assignments
-                            th #{assignment.name}
+extends loggedInPage.pug
 
-                    each student in subject.students
-                        tr
-                            td #{student.firstName} #{student.lastName}
-                            each mark in student.marks
-                                td
-                                    if mark.value
-                                        center #{mark.value}
-                                        form#formDel(name="delete", method="post", action=`/delete_mark/${student._id}/${mark._id}?_method=DELETE`)
-                                            button#btnDel(type="submit") DEL
-                                        form#formUpd(name="update", method="post", action=`/update_mark/${student._id}/${mark._id}?_method=PUT`)
-                                            input#updMark(name="upd", type="number", value=mark.value, step="0.5", min="2", max="5")
-                                            button#btnUpd(type="submit") UPD
-                                    else
-                                        form#formAdd(name="add", method="post", action=`/add_mark/${student._id}/${subject._id}/${mark.assignment}`)
-                                            input#addMark(name="add", type="number", value=3.0, step="0.5", min="2", max="5")
-                                            button#btnUpd(type="submit") ADD
+block content
+  h1 #{name}
+  h2 Subjects
+  each subject in subjects
+    div
+      h3 #{subject.name}
+      table.teacher
+        tr
+          th
+          each assignment in subject.assignments
+            th #{assignment.name}
+
+        each student in subject.students
+          tr
+            td #{student.firstName} #{student.lastName}
+            each mark in student.marks
+              td.mark
+                if mark.value
+                  span.markValue #{mark.value}
+                  form(name="update", method="post", action=`/update_mark/${student._id}/${mark._id}?_method=PUT`)
+                    input(name="upd", type="number", value=mark.value, step="0.5", min="2", max="5")
+                    button(type="submit", alt="Save")
+                      i.fas.fa-save
+                  form(name="delete", method="post", action=`/delete_mark/${student._id}/${mark._id}?_method=DELETE`)
+                    button(type="submit", alt="Delete")
+                      i.fas.fa-trash-alt
+                else
+                   form#formAdd(name="add", method="post", action=`/add_mark/${student._id}/${subject._id}/${mark.assignment}`)
+                     input(name="add", type="number", value=3.0, step="0.5", min="2", max="5")
+                     button(type="submit", alt="Add")
+                       i.fas.fa-save

@@ -80,8 +80,12 @@ router.get('/student', ensureStudent, (req, res) => {
                 else return (a.subject.name < b.subject.name) ? -1 : 1;
             });
 
+            let studentFullName = `${student.firstName} ${student.lastName}`;
+
             res.render('student', {
-                name: `${student.firstName} ${student.lastName}`,
+                title: `Student ${studentFullName}`,
+                role: 'student',
+                name: studentFullName,
                 subjectWithMarksList: subjectWithMarksList,
             });
         });
@@ -181,7 +185,9 @@ router.get('/teacher', ensureTeacher, (req, res) => {
                 });
 
                 res.render('teacher', {
+                    title: `Teacher ${name}`,
                     name: name,
+                    role: 'teacher',
                     subjects: mSubjects,
                 });
             })
