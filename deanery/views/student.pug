@@ -5,11 +5,11 @@ html
     body
         h1 #{name}
         h2 Subjects
-        each markList, subject in marks
+        each swm in subjectWithMarksList
             div
-                h3 #{subject}
+                h3 #{swm.subject.name}
                 table
-                    tr: each markObject, i in markList
-                        th #{markObject.assignment}
-                    tr: each markObject, i in markList
-                        td #{markObject.value}
+                    tr: each mark in swm.marks
+                        th #{mark.assignment.name}
+                    tr: each mark in swm.marks
+                        td #{mark.value}

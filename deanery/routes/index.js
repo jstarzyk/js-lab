@@ -1,12 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-// const back = require('express-back');
 
 const schemas = require('../schemas/schema');
-const User = schemas.User;
 const Subject = schemas.Subject;
-const Assignment = schemas.Assignment;
 const Student = schemas.Student;
 const Teacher = schemas.Teacher;
 
@@ -23,21 +20,29 @@ function ensureAuthenticated(req, res, next) {
     res.redirect('/login');
 }
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
+function ensureTeacher(req, res, next) {
+    ensureAuthenticated(req, res, () => {
+        if (req.user.role === 'teacher') {
+            return next();
+        }
+        res.redirect('/student');
+    });
+}
+
+function ensureStudent(req, res, next) {
+    ensureAuthenticated(req, res, () => {
+        if (req.user.role === 'student') {
+            return next();
+        }
+        res.redirect('/teacher');
+    });
+}
+
+router.get('/', (req, res) => {
     res.redirect('/login');
 });
 
-router.get('/subjectlist', ensureAuthenticated, (req, res) => {
-        Subject.find({},function(e,docs){
-            res.render('subjectlist', {
-                "subjectlist" : docs
-            });
-        });
-    }
-);
-
-router.get('/student', ensureAuthenticated, (req, res) => {
+router.get('/student', ensureStudent, (req, res) => {
     Student
         .findOne({ user: req.user.id })
         .populate('marks.subject')
@@ -46,36 +51,43 @@ router.get('/student', ensureAuthenticated, (req, res) => {
             let marks = student.marks;
             marks.sort((a, b) => {
                 if (a.subject.name === b.subject.name) {
-                    if (a.assignment.name < b.assignment.name) return -1;
-                    else if (a.assignment.name > b.assignment.name) return 1;
-                    return 0;
+                    if (a.assignment.name === b.assignment.name) return 0;
+                    else return (a.assignment.name < b.assignment.name) ? -1 : 1;
                 } else {
                     return a.subject.name < b.subject.name ? -1 : 1;
                 }
             });
 
-            let marksBySubject = {};
-            marks.forEach(mark => {
-                let key = mark.subject.name;
-                let m = { assignment: mark.assignment.name, value: mark.value };
+            let subjectWithMarksList = [];
 
-                if (marksBySubject[key] !== undefined) {
-                    let mbs = marksBySubject[key];
-                    mbs.push(m);
-                    marksBySubject[key] = mbs;
+            marks.forEach(mark => {
+                let key = mark.subject;
+
+                let swm = subjectWithMarksList.find(swm => swm.subject === key);
+
+                if (swm !== undefined) {
+                    swm.marks.push(mark);
                 } else {
-                    marksBySubject[key] = [m];
+                    subjectWithMarksList.push({
+                        subject: key,
+                        marks: [mark]
+                    });
                 }
+            });
+
+            subjectWithMarksList.sort((a, b) => {
+                if (a.subject.name === b.subject.name) return 0;
+                else return (a.subject.name < b.subject.name) ? -1 : 1;
             });
 
             res.render('student', {
                 name: `${student.firstName} ${student.lastName}`,
-                marks: marksBySubject,
+                subjectWithMarksList: subjectWithMarksList,
             });
         });
 });
 
-router.get('/teacher', ensureAuthenticated, (req, res) => {
+router.get('/teacher', ensureTeacher, (req, res) => {
     let name;
 
     Teacher
@@ -113,6 +125,12 @@ router.get('/teacher', ensureAuthenticated, (req, res) => {
                 let mSubject = subject;
                 let mStudents = [];
 
+                let assignments = subject.assignments;
+                assignments.sort((a, b) => {
+                    if (a.name === b.name) return 0;
+                    else return (a.name < b.name) ? -1 : 1;
+                });
+
                 subject.students.forEach(student => {
                     studentPromises.push(Student.findById(student._id)
                         .populate('marks.subject')
@@ -121,27 +139,47 @@ router.get('/teacher', ensureAuthenticated, (req, res) => {
                             let mStudent = student;
 
                             let newMarks = student.marks
-                                // TODO: Check why filter doesn't work when comparing by _id
-                                .filter(mark => mark.subject.name === subject.name);
-                            newMarks.sort((a, b) => {
-                                if (a.assignment.name < b.assignment.name) return -1;
-                                else if (a.assignment.name > b.assignment.name) return 1;
-                                return 0;
+                                .filter(mark => mark.subject._id.toString() === subject._id.toString());
+
+                            mStudent.marks = assignments.map(assignment => {
+                                let mark = newMarks.find(mark => mark.assignment.id.toString() === assignment._id.toString());
+                                if (mark === undefined) {
+                                    return {
+                                        subject: null,
+                                        assignment: assignment._id,
+                                        value: null
+                                    };
+                                } else {
+                                    return mark;
+                                }
                             });
-                            // TODO: Maybe add empty mark when no mark for an assignment
-                            mStudent.marks = newMarks;
+
                             mStudents.push(mStudent);
 
                         }));
                 });
 
                 subjectPromises.push(Promise.all(studentPromises).then(() => {
+                    mStudents.sort((a, b) => {
+                        if (a.lastName === b.lastName) {
+                            if (a.firstName === b.firstName) return 0;
+                            else return (a.firstName < b.firstName) ? -1 : 1;
+                        } else {
+                            return (a.lastName < b.lastName) ? -1 : 1;
+                        }
+                    });
+
                     mSubject.students = mStudents;
                     mSubjects.push(mSubject);
                 }));
             });
 
             Promise.all(subjectPromises).then(() => {
+                mSubjects.sort((a, b) => {
+                    if (a.name === b.name) return 0;
+                    else return (a.name < b.name) ? -1 : 1;
+                });
+
                 res.render('teacher', {
                     name: name,
                     subjects: mSubjects,
@@ -151,11 +189,31 @@ router.get('/teacher', ensureAuthenticated, (req, res) => {
         });
 });
 
-router.delete('/delete_mark/:student_id/:mark_id', ensureAuthenticated, (req, res) => {
-    if (req.user.role === 'student') {
-        res.redirect('/student');
+router.post('/add_mark/:student_id/:subject_id/:assignment_id', ensureTeacher, (req, res) => {
+    let newValue = Number(req.body['add']);
+    if (newValue === 2.5) {
+        log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
+    } else {
+        Student.update({
+                '_id': req.params.student_id,
+            },
+            { '$push': {
+                    'marks': {
+                        subject: req.params.subject_id,
+                        assignment: req.params.assignment_id,
+                        value: newValue
+                    }
+                }},
+            err => {
+                if (err) error(err);
+            }
+        );
     }
 
+    res.redirect('/teacher');
+});
+
+router.delete('/delete_mark/:student_id/:mark_id', ensureTeacher, (req, res) => {
     Student.update(
         { '_id': req.params.student_id },
         { '$pull': { 'marks': { '_id': req.params.mark_id } } },
@@ -167,11 +225,7 @@ router.delete('/delete_mark/:student_id/:mark_id', ensureAuthenticated, (req, re
     res.redirect('/teacher');
 });
 
-router.put('/update_mark/:student_id/:mark_id', ensureAuthenticated, (req, res) => {
-    if (req.user.role === 'student') {
-        res.redirect('/student');
-    }
-
+router.put('/update_mark/:student_id/:mark_id', ensureTeacher, (req, res) => {
     let newValue = Number(req.body['upd']);
     if (newValue === 2.5) {
         log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
