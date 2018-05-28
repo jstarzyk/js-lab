@@ -7,9 +7,14 @@ const Teacher = schemas.Teacher;
 
 const mongoose = require('mongoose');
 
+const debug = require('debug');
+const error = debug('deanery:seed:error');
+const log   = debug('deanery:seed');
+log.log = console.log.bind(console);
+
 mongoose.connect('mongodb://localhost:27017/deanery')
-    .then(db => console.log('connected'))
-    .catch(err => console.error(err));
+    .then(db => log('connected'))
+    .catch(err => error(err));
 
 seed();
 
@@ -32,10 +37,10 @@ function seed() {
         .then(() => {
             let marksPromises = [];
             students.forEach(student => {
-                // console.log(student);
+                // log(student);
                 subjects.forEach(subject => marksPromises.push(addRandomMarksToStudent(student._id, subject._id)));
                 // subjects.forEach(subject => {
-                //     console.log(subject);
+                //     log(subject);
                 //     marksPromises.push(addRandomMarksToStudent(student, subject))
                 // });
             });
@@ -44,7 +49,7 @@ function seed() {
         .then(() => addPersonWithUser("spolak", "abc123sp", "Stanisław", "Polak", "teacher"))
         .then(teacher => addSubjectsToTeacher(teacher._id, subjects))
         .then(() => mongoose.disconnect())
-        .catch(err => console.error(err));
+        .catch(err => error(err));
 }
 
 function addSubjectWithAssignments(name, nAssignments, students) {

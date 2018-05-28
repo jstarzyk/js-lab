@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "init": "mkdir -p db/{logs,data}",
-    "start": "node ./bin/www",
-    "mongo:start": "mongod --dbpath ./db/data --logpath ./db/logs/mongo.log",
-    "mongo:stop": "mongod --dbpath ./db/data --shutdown"
+    "init": "npm run-script mongo:stop; npm run-script clean; npm run-script mongo:start; npm run-script seed",
+    "debug": "env DEBUG=* node ./bin/www",
+    "start": "env DEBUG=deanery:* node ./bin/www",
+    "seed": "node seed.js",
+    "mongo:start": "mkdir -p db/{logs,data}; mongod --dbpath ./db/data --logpath ./db/logs/mongo.log --fork",
+    "mongo:stop": "mongod --dbpath ./db/data --shutdown --quiet",
+    "clean": "rm -rf ./db"
   },
   "dependencies": {
     "body-parser": "^1.18.3",

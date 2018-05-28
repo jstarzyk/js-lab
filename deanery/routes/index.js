@@ -10,21 +10,34 @@ const Assignment = schemas.Assignment;
 const Student = schemas.Student;
 const Teacher = schemas.Teacher;
 
+const debug = require('debug');
+const log = debug('deanery:index');
+const error = debug('deanery:index:error');
+log.log = console.log.bind(console);
+
+
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
     res.redirect('/login');
 });
 
-router.get('/subjectlist', function(req, res) {
-    Subject.find({},function(e,docs){
-        res.render('subjectlist', {
-            "subjectlist" : docs
+router.get('/subjectlist', ensureAuthenticated, (req, res) => {
+        Subject.find({},function(e,docs){
+            res.render('subjectlist', {
+                "subjectlist" : docs
+            });
         });
-    });
-});
+    }
+);
 
-router.get('/student', (req, res) => {
+router.get('/student', ensureAuthenticated, (req, res) => {
     Student
         .findOne({ user: req.user.id })
         .populate('marks.subject')
@@ -60,10 +73,9 @@ router.get('/student', (req, res) => {
                 marks: marksBySubject,
             });
         });
-    // res.redirect('/logout');
 });
 
-router.get('/teacher', (req, res) => {
+router.get('/teacher', ensureAuthenticated, (req, res) => {
     let name;
 
     Teacher
@@ -139,7 +151,7 @@ router.get('/teacher', (req, res) => {
         });
 });
 
-router.delete('/delete_mark/:student_id/:mark_id', (req, res) => {
+router.delete('/delete_mark/:student_id/:mark_id', ensureAuthenticated, (req, res) => {
     if (req.user.role === 'student') {
         res.redirect('/student');
     }
@@ -148,21 +160,21 @@ router.delete('/delete_mark/:student_id/:mark_id', (req, res) => {
         { '_id': req.params.student_id },
         { '$pull': { 'marks': { '_id': req.params.mark_id } } },
         err => {
-            if (err) console.error(err);
+            if (err) error(err);
         }
     );
 
     res.redirect('/teacher');
 });
 
-router.put('/update_mark/:student_id/:mark_id', (req, res) => {
+router.put('/update_mark/:student_id/:mark_id', ensureAuthenticated, (req, res) => {
     if (req.user.role === 'student') {
         res.redirect('/student');
     }
 
     let newValue = Number(req.body['upd']);
     if (newValue === 2.5) {
-        console.log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
+        log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
     } else {
         Student.update({
                 '_id': req.params.student_id,
@@ -172,16 +184,15 @@ router.put('/update_mark/:student_id/:mark_id', (req, res) => {
                     'marks.$.value': newValue
                 }},
             err => {
-                if (err) console.error(err);
+                if (err) error(err);
             }
         );
     }
-    // console.log(req.body[`u${req.params.mark_id}`]);
 
     res.redirect('/teacher');
 });
 
-router.get('/login', function(req, res) {
+router.get('/login', (req, res) => {
     res.render('login', { title: 'Login' });
 });
 

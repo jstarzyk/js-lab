@@ -8,10 +8,15 @@ const passport = require('passport');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
 
+const debug = require('debug');
+const error = debug('deanery:app:error');
+const log   = debug('deanery:app');
+log.log = console.log.bind(console);
+
 
 mongoose.connect('mongodb://localhost:27017/deanery')
-    .then(db => console.log('connected'))
-    .catch(err => console.error(err));
+    .then(db => log('connected to database'))
+    .catch(err => error(err));
 
 let db = mongoose.connection;
 
@@ -69,14 +74,12 @@ passport.use(new LocalStrategy(
         User.findOne({ username: username }, function(err, user) {
             if (err) { return done(err); }
             if (!user) {
-                console.log("incorrect username");
+                log("incorrect username");
                 return done(null, false, { message: 'Incorrect username.' });
             }
             // if (!user.validPassword(password)) {
             if (user.password !== password) {
-                console.log("incorrect password");
-                // console.log(`pwd = ${user.password}`);
-                // console.log(`entered = ${password}`);
+                log("incorrect password");
                 return done(null, false, { message: 'Incorrect password.' });
             }
             return done(null, user);
