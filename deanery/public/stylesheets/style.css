@@ -86,7 +86,8 @@ td.mark input[type=number] {
 
 span.markValue {
     font-weight: bold;
-    color: #008000
+    font-size: large;
+    color: #3862e0
 }
 
 td.mark button[type=submit] {
@@ -122,6 +123,7 @@ td.mark {
 
 td.mark form {
     display: inline-block;
+    /*float: right;*/
 }
 
 form#formLogin {

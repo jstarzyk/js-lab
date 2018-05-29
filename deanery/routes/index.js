@@ -7,7 +7,6 @@ const schemas = require('../schemas/schema');
 const Subject = schemas.Subject;
 const Student = schemas.Student;
 const Teacher = schemas.Teacher;
-// const Assignment = schemas.Assignment;
 
 const debug = require('debug');
 const log = debug('deanery:index');
@@ -197,24 +196,18 @@ router.get('/teacher', ensureTeacher, (req, res) => {
         });
 });
 
-// router.post('/add_mark/:student_id/:subject_id/:assignment_id', ensureTeacher, (req, res) => {
 router.post('/add_mark', ensureTeacher, (req, res) => {
-    // console.log(req.body);
-
     let newValue = Number(req.body.value);
     if (newValue === 2.5) {
         log('Invalid mark, choose from (2, 3, 3.5, 4, 4.5, 5)');
     } else {
         Student.update({
-                // '_id': req.params.student_id,
                 '_id': ObjectId(req.body.studentId),
             },
             { '$push': {
                     'marks': {
                         subject: ObjectId(req.body.subjectId),
-                        // subject: req.params.subject_id,
                         assignment: ObjectId(req.body.assignmentId),
-                        // assignment: req.params.assignment_id,
                         value: newValue
                     }
                 }},
@@ -227,7 +220,6 @@ router.post('/add_mark', ensureTeacher, (req, res) => {
     res.redirect('/teacher');
 });
 
-// router.delete('/delete_mark/:student_id/:mark_id', ensureTeacher, (req, res) => {
 router.delete('/delete_mark', ensureTeacher, (req, res) => {
     Student.update(
         { '_id': ObjectId(req.body.studentId) },
@@ -240,7 +232,6 @@ router.delete('/delete_mark', ensureTeacher, (req, res) => {
     res.redirect('/teacher');
 });
 
-// router.put('/update_mark/:student_id/:mark_id', ensureTeacher, (req, res) => {
 router.put('/update_mark', ensureTeacher, (req, res) => {
     let newValue = Number(req.body.value);
     if (newValue === 2.5) {
