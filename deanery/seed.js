@@ -24,14 +24,15 @@ function seed() {
 
     let personPromises = [
         addPersonWithUser("jkowalski", "abc123jk", "Jan", "Kowalski", "student"),
-        addPersonWithUser("amalinowski", "abc123am", "Adam", "Malinowski", "student")
+        addPersonWithUser("amalinowski", "abc123am", "Adam", "Malinowski", "student"),
+        addPersonWithUser("jstarzyk", "abc123js", "Jakub", "Starzyk", "student")
     ];
 
     Promise.all(personPromises)
         .then(results => results.forEach(student => students.push(student)))
         .then(() => Promise.all([
             addSubjectWithAssignments("JavaScript", 7, students),
-            addSubjectWithAssignments("Erlang", 7, students),
+            addSubjectWithAssignments("Ruby", 6, students),
         ]))
         .then(results => results.forEach(subject => subjects.push(subject)))
         .then(() => {
