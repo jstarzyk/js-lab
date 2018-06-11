@@ -7,6 +7,7 @@ const schemas = require('../schemas/schema');
 const Subject = schemas.Subject;
 const Student = schemas.Student;
 const Teacher = schemas.Teacher;
+const User = schemas.User;
 
 const debug = require('debug');
 const log = debug('deanery:index');
@@ -195,6 +196,14 @@ router.get('/teacher', ensureTeacher, (req, res) => {
 
         });
 });
+
+// router.get('/register', (req, res) => {
+//     res.render('register');
+// });
+//
+// router.post('/add_person', (req, res) => {
+//
+// });
 
 router.post('/add_mark', ensureTeacher, (req, res) => {
     let newValue = Number(req.body.value);

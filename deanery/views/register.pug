@@ -1,0 +1,24 @@
+extends layout.pug
+
+block content
+  div(id="reg")
+    form#formRegister(name="register", method="post", action="/register")
+      label(for="username") Username:
+      input(type="text", placeholder="username", id="username" name="username")
+      label(for="password") Password:
+      input(type="password", id="password", name="password")
+      label(for="firstName") First Name:
+      input(type="text", id="firstName", name="firstName")
+      label(for="lastName") Last Name:
+      input(type="text", id="lastName", name="lastName")
+      label(for="role") Role:
+      select(id="role", name="role")
+        option(value="teacher") Teacher
+        option(value="student") Student
+      button#btnSubmit(type="submit") Register
+
+    div(id="divLogins")
+      h3(id="h3Logins") Logins already in use
+      ul(id="logins")
+          li abc
+          li def

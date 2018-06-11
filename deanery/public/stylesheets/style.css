@@ -127,19 +127,32 @@ td.mark form {
 }
 
 form#formLogin {
+/*form {*/
     margin: 50px auto;
     width: 450px; 
-    align: center;
+    /*align: center;*/
     display: block;
     border: 1px #eee solid;
     padding: 10px;
 }
 
+form#formRegister {
+    margin: 50px 30px 50px auto;
+    width: 450px;
+    display: inline-block;
+    border: 1px #eee solid;
+    padding: 10px;
+}
+
+form#formRegister label,
 form#formLogin label {
     display: block;
     margin: 10px auto;
 }
 
+form#formRegister input[type=text],
+form#formRegister input[type=password],
+form#formRegister select,
 form#formLogin input[type=text],
 form#formLogin input[type=password] {
     border: 1px solid #ccc;
@@ -149,11 +162,48 @@ form#formLogin input[type=password] {
     padding: 3px;
 }
 
+form#formRegister input[type=text]:focus,
+form#formRegister input[type=password]:focus,
 form#formLogin input[type=text]:focus,
 form#formLogin input[type=password]:focus {
     background-color: lightyellow;
 }
 
+form#formRegister button,
 form#formLogin button {
     margin: 7px 0;
+}
+
+div#divLogins {
+    width: 250px;
+    vertical-align: top;
+    display: inline-block;
+    margin: 50px auto auto 30px;
+}
+
+div#reg {
+    display: block;
+    width: 800px;
+    margin: auto;
+}
+
+ul {
+    /*vertical-align: top;*/
+    /*display: inline-block;*/
+    /*margin: 50px auto auto 50px;*/
+    /*padding: 10px*/
+}
+
+li {
+    margin: 3px auto auto 3px;
+    border: 1px #eee solid;
+    /*font-weight: bold;*/
+    padding: 3px;
+    display: block
+}
+
+h3#h3Logins {
+    text-align: center;
+    font-weight: normal;
+    font-size: x-large;
 }
