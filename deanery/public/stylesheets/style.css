@@ -67,6 +67,14 @@ nav > ul > li > a {
     text-decoration: none;
 }
 
+.lr {
+    color: #000000;
+    display: block;
+    line-height: 56px;
+    padding: 0 24px;
+    text-decoration: none;
+}
+
 .username {
     padding: 0 5px;
     color: #e94444;
@@ -123,17 +131,15 @@ td.mark {
 
 td.mark form {
     display: inline-block;
-    /*float: right;*/
 }
 
 form#formLogin {
-/*form {*/
     margin: 50px auto;
     width: 450px; 
-    /*align: center;*/
     display: block;
     border: 1px #eee solid;
     padding: 10px;
+
 }
 
 form#formRegister {
@@ -141,6 +147,7 @@ form#formRegister {
     width: 450px;
     display: inline-block;
     border: 1px #eee solid;
+    /*padding: 10px 20px 10px 10px;*/
     padding: 10px;
 }
 
@@ -157,6 +164,8 @@ form#formLogin input[type=text],
 form#formLogin input[type=password] {
     border: 1px solid #ccc;
     display: block;
+    box-sizing: border-box;
+    /*margin: auto auto auto auto;*/
     width: 100%;
     height: 30px;
     padding: 3px;
@@ -187,14 +196,7 @@ div#reg {
     margin: auto;
 }
 
-ul {
-    /*vertical-align: top;*/
-    /*display: inline-block;*/
-    /*margin: 50px auto auto 50px;*/
-    /*padding: 10px*/
-}
-
-li {
+li#liLogin {
     margin: 3px auto auto 3px;
     border: 1px #eee solid;
     /*font-weight: bold;*/

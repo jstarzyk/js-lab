@@ -22,6 +22,16 @@ function ensureAuthenticated(req, res, next) {
     res.redirect('/login');
 }
 
+function ensureNotAuthenticated(req, res, next) {
+    if (!req.isAuthenticated()) {
+        return next();
+    } else if (req.user.role === 'teacher') {
+        res.redirect('/teacher');
+    } else if (req.user.role === 'student') {
+        res.redirect('/student');
+    }
+}
+
 function ensureTeacher(req, res, next) {
     ensureAuthenticated(req, res, () => {
         if (req.user.role === 'teacher') {
@@ -40,7 +50,7 @@ function ensureStudent(req, res, next) {
     });
 }
 
-router.get('/', (req, res) => {
+router.get('/', ensureNotAuthenticated, (req, res) => {
     res.redirect('/login');
 });
 
@@ -197,13 +207,78 @@ router.get('/teacher', ensureTeacher, (req, res) => {
         });
 });
 
-// router.get('/register', (req, res) => {
-//     res.render('register');
-// });
-//
-// router.post('/add_person', (req, res) => {
-//
-// });
+router.get('/register', ensureNotAuthenticated, (req, res) => {
+    res.render('register', { title: 'Register' });
+});
+
+function addPersonWithUser(username, password, firstName, lastName, role) {
+    let user = new User({
+        username: username,
+        password: password,
+        role: role
+    });
+
+    return user.save().then((user) => {
+        let person;
+
+        if (role === "student") {
+            person = new Student({
+                user: user._id,
+                firstName: firstName,
+                lastName: lastName,
+            });
+        } else if (role === "teacher") {
+            person = new Teacher({
+                user: user._id,
+                firstName: firstName,
+                lastName: lastName,
+            });
+        }
+
+        return person.save();
+    });
+}
+
+router.post('/add_person', (req, res) => {
+    let body = req.body;
+    User.count({ username: body.username })
+        .then(count => {
+            if (count === 0) {
+                if (body.username.length === 0 ||
+                    body.password.length === 0 ||
+                    body.firstName.length === 0 ||
+                    body.lastName.length === 0) {
+                    res.redirect('/register');
+                } else {
+                    addPersonWithUser(body.username, body.password, body.firstName, body.lastName, body.role).then(() => {
+                    console.log('User added!');
+                    res.redirect('/login');
+                });
+                }
+            } else {
+                console.log(`User with username '${body.username}' already exists!`);
+                res.redirect('/register');
+            }
+        })
+});
+
+
+router.post('/all_logins', (req, res) => {
+    let body = [];
+    req.on('data', (chunk) => {
+        body.push(chunk);
+    }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        User.find({ username: new RegExp(`^${body}`) })
+            .then(users => {
+                let userNames = [];
+                users.forEach(user => userNames.push(user.username));
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.write(JSON.stringify(userNames));
+                res.end();
+            });
+    });
+})
 
 router.post('/add_mark', ensureTeacher, (req, res) => {
     let newValue = Number(req.body.value);
@@ -262,8 +337,8 @@ router.put('/update_mark', ensureTeacher, (req, res) => {
     res.redirect('/teacher');
 });
 
-router.get('/login', (req, res) => {
-    res.render('login', { title: 'Login' });
+router.get('/login', ensureNotAuthenticated, (req, res) => {
+    res.render('login', { title: 'Log In' });
 });
 
 router.post('/login',

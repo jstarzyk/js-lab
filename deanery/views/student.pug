@@ -1,8 +1,7 @@
 extends loggedInPage.pug
 
 block content
-  h1 #{name}
-  h2 Subjects
+  h2 #{name}
   each swm in subjectWithMarksList
     div
       h3 #{swm.subject.name}
