@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        Formularz
+    </title>
+    <script>
+        /*****************************************************************/
+        /* Funkcja wykonująca (asynchroniczne) zapytanie  do serwera WWW */
+        /*****************************************************************/
+        function zapytanie(imie) {
+            var http_request;
+            http_request = new XMLHttpRequest(); //Utworzenie obiektu reprezentującego zapytanie do serwera WWW
+            if (!http_request){
+                window.alert('Nie mogę stworzyć instancji obiektu XMLHttpRequest');
+                return;
+            }
+            if (http_request.overrideMimeType)
+                http_request.overrideMimeType('text/xml'); //Nadpisanie nagłówka MIME
+
+            http_request.open('POST', `/submit`, true);
+
+            //Rejestracja funkcji, która będzie przetwarzać odpowiedź otrzymaną od serwera
+            http_request.onreadystatechange = function() {
+                odpowiedz(http_request);
+            };
+
+            //Wykonanie (asynchronicznego) zapytania do serwera WWW
+            http_request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            let msg = `imie=${imie}`;
+            http_request.send(encodeURI(msg));
+            // http_request.send(null);
+        }
+
+        function zapytanie2(imie) {
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: encodeURI(`imie=${imie}`)
+            })
+                .then(res => res.text())
+                .then(res => window.alert(res))
+                .catch(err => window.alert('Złapany wyjątek: ' + err.description))
+        }
+
+        /***********************************************/
+        /* Funkcja przetwarzająca odpowiedź od serwera */
+        /***********************************************/
+        function odpowiedz(http_request){
+            try {
+                if (http_request.readyState == XMLHttpRequest.DONE) { //Jeżeli odpowiedź jest gotowa
+                    if (http_request.status == 200){ //Jeżeli żądanie było prawidłowe
+                        var odebrane_dane = http_request.responseText; //Odbierz odpowiedź jako tekst
+                        window.alert(odebrane_dane); //i wyświetl ją
+                    }
+                    else
+                        window.alert('Wystąpił problem z tym żądaniem.');
+                }
+            }
+            catch(e) {
+                window.alert('Złapany wyjątek: ' + e.description);
+            }
+        }
+    </script>
+</head>
+<body>
+<main>
+    <!--<form method="get" action="/submit">-->
+    <form action="/submit" method="post" >
+        <label>Wykonaj zapytanie do serwera WWW</label>
+        <input type="hidden" name="imie" value="Jakub Starzyk">
+        <input type="submit" value="Bez użycia AJAX">
+        <input type="button" value="Z użyciem AJAX" onclick="zapytanie(imie.value)">
+    </form>
+</main>
+</body>
+</html>

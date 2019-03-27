@@ -1,0 +1,9 @@
+{
+  "math":
+  [
+    {"type": "add", "data": []},
+    {"type": "sub", "data": [100, 1]},
+    {"type": "mul", "data": [1, 2, 3, 4]},
+    {"type": "div", "data": [4, 0]}
+  ]
+}

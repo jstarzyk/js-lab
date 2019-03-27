@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        Formularz
+    </title>
+    <script>
+        // let ctx = canvas.getContext('2d');
+        // ctx.beginPath();
+        // ctx.moveTo(0, 0);
+        let px = 0;
+        let py = 0;
+
+        // function drawLine(x, y, c) {
+        //     context.beginPath();
+        //     context.moveTo(100, 150);
+        //     context.lineTo(450, 50);
+        //     context.stroke();
+        // }
+
+        function getval() {
+            fetch('/get', {
+            })
+                .then(res => res.text())
+                .then(res => {
+                    let rgx = /(.*) (.*) (.*)/g.exec(res);
+                    let x = Number(rgx[1]);
+                    let y = Number(rgx[2]);
+                    let c = rgx[3];
+
+                    let canvas = document.getElementById('cnv');
+                    let ctx = canvas.getContext('2d');
+                    ctx.beginPath();
+                    ctx.strokeStyle = c;
+                    ctx.moveTo(px,py);
+                    ctx.lineTo(x,y);
+                    ctx.stroke();
+
+                    px = x;
+                    py = y;
+                })
+        }
+
+        function zapytanie() {
+            var http_request;
+            http_request = new XMLHttpRequest(); //Utworzenie obiektu reprezentującego zapytanie do serwera WWW
+            if (!http_request){
+                window.alert('Nie mogę stworzyć instancji obiektu XMLHttpRequest');
+                return;
+            }
+            if (http_request.overrideMimeType)
+                http_request.overrideMimeType('text/xml'); //Nadpisanie nagłówka MIME
+
+            http_request.open('GET', '/submit', true);
+
+            //Rejestracja funkcji, która będzie przetwarzać odpowiedź otrzymaną od serwera
+            http_request.onreadystatechange = function() {
+                odpowiedz(http_request);
+            }
+
+            //Wykonanie (asynchronicznego) zapytania do serwera WWW
+
+            http_request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            let msg = `imie=${imie}`;
+            http_request.send(encodeURI(msg));
+        }
+
+        /***********************************************/
+        /* Funkcja przetwarzająca odpowiedź od serwera */
+        /***********************************************/
+        function odpowiedz(http_request){
+            try {
+                if (http_request.readyState == XMLHttpRequest.DONE) { //Jeżeli odpowiedź jest gotowa
+                    if (http_request.status == 200){ //Jeżeli żądanie było prawidłowe
+                        var odebrane_dane = http_request.responseText; //Odbierz odpowiedź jako tekst
+                        window.alert(odebrane_dane); //i wyświetl ją
+                    }
+                    else
+                        window.alert('Wystąpił problem z tym żądaniem.');
+                }
+            }
+            catch(e) {
+                window.alert('Złapany wyjątek: ' + e.description);
+            }
+        }
+    </script>
+</head>
+<body>
+<main>
+    <form action="/submit" method="get" >
+        <input type="button" value="GET" onclick="getval()">
+    </form>
+    <canvas id="cnv" width="500" height="500" style="border:1px solid #000000;"></canvas>
+</main>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        #container {
+            /*width: 400px;*/
+            height: 300px;
+            position: relative;
+            background: azure;
+        }
+        #animated {
+            /*width: 50px;*/
+            /*height: 50px;*/
+            position: absolute;
+        }
+    </style>
+    <title>
+        Tytuł strony
+    </title>
+</head>
+<body>
+<form id="form">
+    <input id="move" type="submit" value="Przesuń" onclick="frame(); return false;">
+    <input id="start" type="submit" value="Uruchom" onclick="startAnimation(); return false;">
+    <input id="stop" type="submit" value="Zatrzymaj" onclick="endAnimation(); return false;">
+</form>
+<header>
+    <div id="container">
+        <h1 id="animated">
+            Tytuł strony
+        </h1>
+    </div>
+</header>
+
+<nav>
+    <!--Tutaj menu nawigacyjne -->
+
+    <ul>
+        <li>
+            <a href="">Element 1</a>
+        </li>
+
+        <li>
+            <a href="">Element 2</a>
+        </li>
+    </ul>
+</nav>
+<!-- Tutaj treść panelu bocznego -->
+
+<aside>
+    <h1>
+        Panel boczny
+    </h1>
+
+    <h2>
+        Ciekawe odsyłacze
+    </h2>
+
+    <ul>
+        <li>
+            <a href="">Odsyłacz 1</a>
+        </li>
+
+        <li>
+            <a href="">Odsyłacz 2</a>
+        </li>
+
+        <li>
+            <a href="">Odsyłacz 3</a>
+        </li>
+    </ul>
+</aside>
+
+<main>
+    <!--Tutaj treść strony-->
+
+    <h1>
+        Treść strony
+    </h1>
+
+    <pre>
+Natenczas Wojski chwycił na taśmie przypięty
+Swój róg bawoli, długi, cętkowany, kręty
+Jak wąż boa, oburącz do ust go przycisnął,
+Wzdął policzki jak banię, w oczach krwią zabłysnął,
+Zasunął wpół powieki, wciągnął w głąb pół brzucha
+I do płuc wysłał z niego cały zapas ducha,
+I zagrał: róg jak wicher, wirowatym dechem
+Niesie w puszczę muzykę i podwaja echem.
+
+Umilkli strzelcy, stali szczwacze zadziwieni
+Mocą, czystością, dziwną harmoniją pieni.
+Starzec cały kunszt, którym niegdyś w lasach słynął,
+Jeszcze raz przed uszami myśliwców rozwinął;
+Napełnił wnet, ożywił knieje i dąbrowy,
+Jakby psiarnię w nie wpuścił i rozpoczął łowy.
+
+Bo w graniu była łowów historyja krótka:
+Zrazu odzew dźwięczący, rześki: to pobudka;
+Potem jęki po jękach skomlą: to psów granie;
+A gdzieniegdzie ton twardszy jak grzmot: to strzelanie.
+</pre>
+</main>
+
+<footer>
+    <!-- Tutaj treść stopki -->
+    <a href="mailto:twoj.adres.email">Imię Nazwisko</a>
+</footer>
+<script type="text/javascript" src="3-2.js"></script>
+</body>
+</html>

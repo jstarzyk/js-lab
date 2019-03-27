@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        Tic-Tac-Toe
+    </title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+          integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+          crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
+            integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
+            integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm"
+            crossorigin="anonymous"></script>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<script>
+    $(document).ready(function () {
+        let move = 0;
+        let play = true;
+        let spaces = [[], [], []];
+        let p1 = $('#p1');
+        let p2 = $('#p2');
+        let r1 = Number(p1.text());
+        let r2 = Number(p2.text());
+        let val = "X";
+        let lastStart = "X";
+        let result;
+
+        for (let row = 1; row <= 3; row++) {
+            for (let col = 1; col <= 3; col++) {
+                spaces[row - 1][col - 1] = $(`#board tr:nth-child(${row}) td:nth-child(${col})`);
+            }
+        }
+
+        function randEmptyField() {
+            let index = Math.floor(Math.random() * 9);
+            do {
+                index = Math.floor(Math.random() * 9);
+            } while (spaces[Math.floor(index / 3)][index % 3].text() !== "");
+            return {
+                row: Math.floor(index / 3) + 1,
+                col: index % 3 + 1
+            };
+        }
+
+        function resetGame() {
+            move = 0;
+            play = false;
+
+            for (let row = 1; row <= 3; row++) {
+                for (let col = 1; col <= 3; col++) {
+                    spaces[row - 1][col - 1].text("");
+                }
+            }
+        }
+
+        function nextMove(field) {
+            move++;
+            field.text(val);
+            let message;
+            // window.setTimeout(() => {
+            let res = checkForWinner();
+            if (res === -1 && move < 9) {
+                return;
+            }
+            if (res !== -1) {
+                if (res === "X") {
+                    r1++;
+                    p1.text(r1);
+                    result = "X";
+                    message = "Player 1 (X) wins!";
+                } else {
+                    r2++;
+                    p2.text(r2);
+                    result = "O";
+                    message = "Player 2 (O) wins!";
+                }
+                // resetGame();
+            } else if (move === 9) {
+                result = "DRAW";
+                message = "Draw!";
+            }
+            resetGame();
+            alert(message);
+            // }, 500);
+        }
+
+        function player1(e) {
+            if (play) {
+                val = "X";
+                let field = $(e.target);
+                if (field.text() === "") {
+                    nextMove(field);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        function player2() {
+            if (play) {
+                val = "O";
+                let indexes = randEmptyField();
+                let field = $(`#board tr:nth-child(${indexes.row}) td:nth-child(${indexes.col})`);
+                nextMove(field);
+            }
+        }
+
+        $("#board tr td").click(e => {
+            if (player1(e)) {
+                player2();
+                if (!play) {
+                    play = true;
+                    if ((result === "DRAW" && lastStart === "X") || result === "X") {
+                        player2();
+                        lastStart = "O";
+                    }
+                }
+            }
+        });
+
+        function checkForWinner() {
+            for (let row = 0; row < 3; row++) {
+                if (spaces[row][1].text() === spaces[row][0].text() &&
+                    spaces[row][1].text() === spaces[row][2].text() &&
+                    spaces[row][1].text() !== ''
+                ) {
+                    return spaces[row][1].text();
+                }
+            }
+
+            for (let col = 0; col < 3; col++) {
+                if (spaces[1][col].text() === spaces[0][col].text() &&
+                    spaces[1][col].text() === spaces[2][col].text() &&
+                    spaces[1][col].text() !== ''
+                ) {
+                    return spaces[1][col].text();
+                }
+            }
+
+            if (spaces[0][0].text() === spaces[1][1].text() &&
+                spaces[1][1].text() === spaces[2][2].text() &&
+                spaces[1][1].text() !== ''
+            ) {
+                return spaces[1][1].text();
+            }
+
+            if (spaces[0][2].text() === spaces[1][1].text() &&
+                spaces[1][1].text() === spaces[2][0].text() &&
+                spaces[1][1].text() !== ''
+            ) {
+                return spaces[1][1].text();
+            }
+
+            return -1;
+        }
+    });
+
+</script>
+<main>
+    <table id='board'>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    <table id='results'>
+        <thead>
+            <tr>
+                <td>Player 1 (X)</td>
+                <td>Player 2 (O)</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id='p1'>0</td>
+                <td id='p2'>0</td>
+            </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

@@ -1,0 +1,31 @@
+.myicon {
+    width: 150px;
+}
+
+.spacing {
+    height: 50px;
+}
+
+.spacing_s {
+    height: 20px;
+}
+
+.styl0 {
+    border-radius: 10px;
+}
+
+.styl1 {
+    border: 3px solid red;
+}
+
+.styl2 {
+    border: 3px solid green;
+}
+
+.styl3 {
+    border: 3px solid blue;
+}
+
+img {
+    width: 100%;
+}

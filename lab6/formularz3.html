@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        Formularz
+    </title>
+    <script>
+        let i;
+
+        function send() {
+            i = window.setInterval(() => {
+               request()
+                   .catch(() => {
+                       window.clearInterval(i);
+                   });
+            }, 1000);
+        }
+
+        function stop() {
+            window.clearInterval(i);
+        }
+
+        function request() {
+            return fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+                .then(res => res.text())
+                .then(res => {
+                    let p = /([\S]+) ([\S]) ([\S]+)/g.exec(res);
+
+                    let x1 = p[1];
+                    let x2 = p[3];
+                    let op = p[2];
+                    let r;
+
+                    switch (op) {
+                        case '+':
+                            r = x1 + x2;
+                            break;
+                        case '-':
+                            r = x1 - x2;
+                            break;
+                        case '*':
+                            r = x1 * x2;
+                            break;
+                        case '/':
+                            r = x1 / x2;
+                            break;
+                    }
+
+                    let w = `${x1} ${op} ${x2} = ${r}`;
+                    return w;
+                })
+                .then(w => {
+                    let n = document.createElement('p');
+                    n.appendChild(document.createTextNode(w));
+                    document.body.appendChild(n);
+                });
+                // .catch(err => window.alert('Złapany wyjątek: ' + err.description))
+        }
+
+        /***********************************************/
+        /* Funkcja przetwarzająca odpowiedź od serwera */
+        /***********************************************/
+        function odpowiedz(http_request){
+            try {
+                if (http_request.readyState == XMLHttpRequest.DONE) { //Jeżeli odpowiedź jest gotowa
+                    if (http_request.status == 200){ //Jeżeli żądanie było prawidłowe
+                        var odebrane_dane = http_request.responseText; //Odbierz odpowiedź jako tekst
+                        window.alert(odebrane_dane); //i wyświetl ją
+                    }
+                    else
+                        window.alert('Wystąpił problem z tym żądaniem.');
+                }
+            }
+            catch(e) {
+                window.alert('Złapany wyjątek: ' + e.description);
+            }
+        }
+    </script>
+</head>
+<body>
+<main>
+    <form action="/submit" method="post" >
+        <input type="button" value="START" onclick="send()">
+        <input type="button" value="STOP" onclick="stop()">
+    </form>
+</main>
+</body>
+</html>
